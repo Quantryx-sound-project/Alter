@@ -1,7 +1,3 @@
-/** 
- * This file has been updated on 2026-04-16 12:19:22 UTC.
- */
-
 #include "PluginProcessor.h"
 #include <cmath>
 #include <vector>
@@ -187,7 +183,7 @@ void AlterListenerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         }
     }
 
-    // ---- LUFS K-weighted accumulation ----
+    // ---- LUFS K-weighted accumulation (ITU-R BS.1770 - kanaly sa scitaju, nedelime) ----
     {
         const int chCount = juce::jmin (numCh, 2);
         for (int i = 0; i < numSamples; ++i)
@@ -200,7 +196,7 @@ void AlterListenerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
                 s = kWeightStage2[ch].process (s);
                 kSqSum += s * s;
             }
-            if (chCount > 0) kSqSum /= (float) chCount;
+            // ITU-R BS.1770: kanaly sa scitaju priamo, NEpriemeru jeme
 
             if (lufsBufferSize > 0)
             {
