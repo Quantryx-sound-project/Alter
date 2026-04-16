@@ -1,0 +1,222 @@
+/*
+  ==============================================================================
+
+    SystemAudioCapture.h
+    WASAPI Loopback Capture - zachytáva system audio (Spotify, YouTube, atď.)
+
+    Windows: WASAPI Loopback Mode
+    Funguje BEZ Stereo Mix!
+
+  ==============================================================================
+*/
+
+#pragma once
+
+#include <JuceHeader.h>
+#include "AudioSourceInterface.h"
+#include "WasapiLoopbackCapture.h"
+#include <vector>
+#include <atomic>
+#include <cmath>
+
+class SystemAudioCapture : public IAudioSource,
+                           private juce::Timer
+{
+public:
+    SystemAudioCapture()
+    {
+        DBG ("=== SystemAudioCapture constructor started ===");
+
+        // Pre-compute Hann window (computed once, not every frame = faster)
+        for (size_t i = 0; i < fftSize; ++i)
+            windowFunction[i] = 0.5f * (1.0f - std::cos (2.0f * juce::MathConstants<float>::pi * i / fftSize));
+
+        try
+        {
+            setupAudioDevice();
+            startTimerHz (30); // 30 Hz is enough for smooth visualization (saves CPU)
+            DBG ("=== SystemAudioCapture constructor completed successfully ===");
+        }
+        catch (const std::exception& e)
+        {
+            DBG ("SystemAudioCapture constructor EXCEPTION: " + juce::String (e.what()));
+        }
+        catch (...)
+        {
+            DBG ("SystemAudioCapture constructor UNKNOWN EXCEPTION!");
+        }
+    }
+
+    ~SystemAudioCapture() override
+    {
+        stopTimer();
+        #ifdef _WIN32
+            wasapiCapture.reset();
+        #endif
+    }
+
+    // IAudioSource interface
+    float getLastRms() const noexcept override 
+    { 
+        return lastRms.load (std::memory_order_relaxed); 
+    }
+
+    float getBPM() const noexcept override 
+    { 
+        return detectedBPM.load (std::memory_order_relaxed); 
+    }
+
+    int getLastFft (std::vector<float>& out) const override
+    {
+        const juce::ScopedLock sl (fftLock);
+        if (! hasFft) return 0;
+        out = lastFft;
+        return (int) out.size();
+    }
+
+    int getLastFftWithPhase (std::vector<float>& mags, std::vector<float>& phases) const override
+    {
+        const juce::ScopedLock sl (fftLock);
+        if (! hasFft) 
+        { 
+            mags.clear(); 
+            phases.clear(); 
+            return 0; 
+        }
+        mags = lastFft;
+        phases.clear(); // System audio capture doesn't provide phase info
+        return (int) mags.size();
+    }
+
+    int getFftPacketsPerSecond() const noexcept override 
+    { 
+        return 30; // Timer rate
+    }
+
+private:
+    void setupAudioDevice()
+    {
+        #ifdef _WIN32
+            DBG ("=== SystemAudioCapture: Using WASAPI Loopback ===");
+            wasapiCapture = std::make_unique<WasapiLoopbackCapture>();
+
+            if (!wasapiCapture->isActive())
+            {
+                DBG ("ERROR: WASAPI Loopback failed to start!");
+                wasapiCapture.reset();
+            }
+        #else
+            DBG ("=== SystemAudioCapture: macOS/Linux not yet implemented ===");
+        #endif
+    }
+
+    void timerCallback() override
+    {
+        static int fftCount = 0;
+        fftCount++;
+
+        // Debug only every 30 seconds to reduce spam
+        if (fftCount % 900 == 0) // 30 Hz * 30 sec = 900
+        {
+            float rms = lastRms.load();
+            if (rms > 0.001f) // Only log if there's signal
+            {
+                DBG ("SystemAudioCapture: RMS=" + juce::String (rms, 3) + 
+                     " | FFT=" + juce::String (hasFft ? "OK" : "NO"));
+            }
+        }
+
+        computeFFT();
+    }
+
+    void computeFFT()
+    {
+        // Copy audio buffer snapshot and apply pre-computed window in one pass
+        const size_t writePos = bufferWritePos.load();
+        for (size_t i = 0; i < fftSize; ++i)
+        {
+            size_t readPos = (writePos + i) % audioBuffer.size();
+            fftData[i] = audioBuffer[readPos] * windowFunction[i];
+        }
+
+        // Perform FFT
+        fft.performFrequencyOnlyForwardTransform (fftData.data());
+
+        // Normalize and store magnitudes
+        std::vector<float> tmpFft (fftSize / 2);
+        const float scale = 2.0f / fftSize; // Pre-compute scale factor
+
+        for (size_t i = 0; i < fftSize / 2; ++i)
+        {
+            float mag = std::abs (fftData[i]) * scale;
+            tmpFft[i] = juce::jlimit (0.0f, 1.0f, mag);
+        }
+
+        {
+            const juce::ScopedLock sl (fftLock);
+            lastFft.swap (tmpFft);
+            hasFft = true;
+        }
+    }
+
+    void detectOnset (float rms)
+    {
+        const auto now = juce::Time::getMillisecondCounter();
+        const float threshold = lastRmsForOnset * 1.5f;
+
+        if (rms > threshold && rms > 0.1f && (now - lastOnsetTime) > 200)
+        {
+            onsetTimes.push_back (now);
+            lastOnsetTime = now;
+
+            if (onsetTimes.size() > 8)
+                onsetTimes.erase (onsetTimes.begin());
+
+            if (onsetTimes.size() >= 4)
+            {
+                float avgInterval = 0.0f;
+                for (size_t i = 1; i < onsetTimes.size(); ++i)
+                    avgInterval += (float) (onsetTimes[i] - onsetTimes[i - 1]);
+
+                avgInterval /= (float) (onsetTimes.size() - 1);
+
+                if (avgInterval > 200.0f && avgInterval < 2000.0f)
+                {
+                    float bpm = 60000.0f / avgInterval;
+                    bpm = juce::jlimit (60.0f, 200.0f, bpm);
+                    detectedBPM.store (bpm, std::memory_order_relaxed);
+                }
+            }
+        }
+
+        lastRmsForOnset = rms * 0.9f + lastRmsForOnset * 0.1f;
+    }
+
+    juce::AudioDeviceManager audioDeviceManager;
+    juce::AudioIODevice* audioDevice = nullptr;
+
+    // Audio buffer (ring buffer)
+    static constexpr size_t fftSize = 2048;
+    std::array<float, fftSize * 2> audioBuffer {}; // Double size for safety
+    std::atomic<size_t> bufferWritePos { 0 };
+
+    // FFT
+    juce::dsp::FFT fft { 11 }; // 2^11 = 2048
+    std::array<float, fftSize * 2> fftData {};
+    std::array<float, fftSize> windowFunction {}; // Pre-computed Hann window
+    mutable juce::CriticalSection fftLock;
+    std::vector<float> lastFft;
+    bool hasFft = false;
+
+    // RMS & BPM
+    std::atomic<float> lastRms { 0.0f };
+    std::atomic<float> detectedBPM { 120.0f };
+    std::vector<juce::int64> onsetTimes;
+    juce::int64 lastOnsetTime = 0;
+    float lastRmsForOnset = 0.0f;
+
+    // Debug
+    std::atomic<int> callbackCount { 0 };
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SystemAudioCapture)
+};
