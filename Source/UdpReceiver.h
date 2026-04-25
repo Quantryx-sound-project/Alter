@@ -5,7 +5,40 @@
 #include <atomic>
 #include <cstring>
 #include <cmath>
+#include <array>
 
+// ===============================================================
+// MIDI Data Container
+// ===============================================================
+struct MidiNoteData
+{
+    uint8_t noteNumber = 0;
+    uint8_t velocity = 0;
+};
+
+class MidiDataBuffer
+{
+public:
+    void setNotes (const std::vector<MidiNoteData>& notes)
+    {
+        const juce::ScopedLock sl (lock);
+        activeNotes = notes;
+    }
+
+    std::vector<MidiNoteData> getNotes() const
+    {
+        const juce::ScopedLock sl (lock);
+        return activeNotes;
+    }
+
+private:
+    mutable juce::CriticalSection lock;
+    std::vector<MidiNoteData> activeNotes;
+};
+
+// ===============================================================
+// UDP Receiver - extended version with MIDI support
+// ===============================================================
 class UdpReceiver : public IAudioSource,
                     private juce::Thread
 {
@@ -48,6 +81,18 @@ public:
 
     int getFftPacketsPerSecond() const noexcept override { return fftPacketsPerSecond.load(); }
 
+    // ===== NEW: MIDI Methods =====
+    std::vector<MidiNoteData> getActiveMidiNotes() const
+    {
+        return midiBuffer.getNotes();
+    }
+
+    int getActiveMidiNoteCount() const
+    {
+        auto notes = getActiveMidiNotes();
+        return (int) notes.size();
+    }
+
 private:
     void run() override
     {
@@ -88,7 +133,7 @@ private:
                 std::memcpy (&lufs, buf + 4, sizeof (float));
                 lastLufs.store (lufs, std::memory_order_relaxed);
             }
-            // ALTF (FFT magnitudes only) - accept any number of bins (>=64)
+            // ALTF (FFT magnitudes only)
             else if (n >= 4 + 64 * (int) sizeof (float)
                   && buf[0]=='A' && buf[1]=='L' && buf[2]=='T' && buf[3]=='F')
             {
@@ -115,7 +160,7 @@ private:
 
                 ++tickCount;
             }
-            // ALTW (stereo waveform) - interleaved L,R floats
+            // ALTW (stereo waveform)
             else if (n > 4 && buf[0]=='A' && buf[1]=='L' && buf[2]=='T' && buf[3]=='W')
             {
                 const int bytes = n - 4;
@@ -151,6 +196,11 @@ private:
 
                 ++wavePacketCount;
             }
+            // ALTM (MIDI) - NEW!
+            else if (n >= 5 && buf[0]=='A' && buf[1]=='L' && buf[2]=='T' && buf[3]=='M')
+            {
+                processMidiPacket (buf, n);
+            }
 
             // update ALTF/s once per second
             const auto now = juce::Time::getMillisecondCounter();
@@ -165,6 +215,31 @@ private:
         }
     }
 
+    // ===== NEW: MIDI Packet Processing =====
+    void processMidiPacket (const uint8_t* buf, int n)
+    {
+        if (n < 5) return;
+
+        uint8_t noteCount = buf[4];
+        
+        // Validate packet size
+        if (5 + noteCount * 2 != n) return;
+        if (noteCount > 64) return; // sanity check
+
+        std::vector<MidiNoteData> notes;
+        notes.reserve (noteCount);
+
+        for (uint8_t i = 0; i < noteCount; ++i)
+        {
+            MidiNoteData note;
+            note.noteNumber = buf[5 + i * 2];
+            note.velocity = buf[5 + i * 2 + 1];
+            notes.push_back (note);
+        }
+
+        midiBuffer.setNotes (notes);
+    }
+
     // FFT state
     mutable juce::CriticalSection fftLock;
     std::vector<float> lastFft;
@@ -175,6 +250,9 @@ private:
     std::vector<float> lastWaveL;
     std::vector<float> lastWaveR;
     bool hasWaveform = false;
+
+    // MIDI state - NEW!
+    MidiDataBuffer midiBuffer;
 
     juce::DatagramSocket socket;
     const int port;
