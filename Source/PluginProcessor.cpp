@@ -56,6 +56,9 @@ void AlterListenerAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     waveformL.fill (0.0f);
     waveformR.fill (0.0f);
     waveformWrite = 0;
+
+    // Reset MIDI packet counter
+    midiPacketCounter = 0;
 }
 
 // ---------------------------------------------------------------
@@ -101,6 +104,14 @@ void AlterListenerAudioProcessor::enqueueWaveformPacket()
         dst[i * 2 + 1] = waveformR[(size_t) idx];
     }
 
+    ringBuffer.push (packet, packetSize);
+}
+
+void AlterListenerAudioProcessor::enqueueMidiPacket()
+{
+    alignas(4) uint8_t packet[MidiHandler::kMaxPacketSize];
+    int packetSize = 0;
+    midiHandler.serializeToPacket (packet, packetSize);
     ringBuffer.push (packet, packetSize);
 }
 
@@ -150,12 +161,22 @@ void AlterListenerAudioProcessor::performFftAndEnqueue()
 }
 
 void AlterListenerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
-                                                 juce::MidiBuffer& midi)
+                                                 juce::MidiBuffer& midiBuffer)
 {
-    juce::ignoreUnused (midi);
-
     const int numSamples = buffer.getNumSamples();
     const int numCh      = buffer.getNumChannels();
+
+    // ---- MIDI Processing ----
+    // Spracuj MIDI events z DAW
+    midiHandler.processMidiBuffer (midiBuffer);
+
+    // Posiela MIDI packet každých kMidiPacketInterval blockoch
+    midiPacketCounter++;
+    if (midiPacketCounter >= kMidiPacketInterval)
+    {
+        midiPacketCounter = 0;
+        enqueueMidiPacket();
+    }
 
     // ---- RMS + True Peak ----
     {
@@ -192,32 +213,31 @@ void AlterListenerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     }
 
     // ---- LUFS K-weighted accumulation (ITU-R BS.1770 - kanaly sa scitaju, nedelime) ----
-{
-    const int chCount = juce::jmin (numCh, 2);
-    for (int i = 0; i < numSamples; ++i)
     {
-        float kSqSum = 0.0f;
-        for (int ch = 0; ch < chCount; ++ch)
+        const int chCount = juce::jmin (numCh, 2);
+        for (int i = 0; i < numSamples; ++i)
         {
-            float s = buffer.getReadPointer (ch)[i];
-            s = kWeightStage1[ch].process (s);
-            s = kWeightStage2[ch].process (s);
-            kSqSum += s * s;
-        }
-        // ITU-R BS.1770: kanaly sa scitaju priamo, NEpriemuerujeme
-        // ODSTRANENY RIADOK: if (chCount > 0) kSqSum /= (float) chCount;
+            float kSqSum = 0.0f;
+            for (int ch = 0; ch < chCount; ++ch)
+            {
+                float s = buffer.getReadPointer (ch)[i];
+                s = kWeightStage1[ch].process (s);
+                s = kWeightStage2[ch].process (s);
+                kSqSum += s * s;
+            }
+            // ITU-R BS.1770: kanaly sa scitaju priamo, NEpriemuerujeme
+            // ODSTRANENY RIADOK: if (chCount > 0) kSqSum /= (float) chCount;
 
-        if (lufsBufferSize > 0)
-        {
-            lufsRunningSum -= (double) lufsBuffer[(size_t) lufsWritePos];
-            lufsBuffer[(size_t) lufsWritePos] = kSqSum;
-            lufsRunningSum += (double) kSqSum;
-            if (lufsRunningSum < 0.0) lufsRunningSum = 0.0;
-            lufsWritePos = (lufsWritePos + 1) % lufsBufferSize;
+            if (lufsBufferSize > 0)
+            {
+                lufsRunningSum -= (double) lufsBuffer[(size_t) lufsWritePos];
+                lufsBuffer[(size_t) lufsWritePos] = kSqSum;
+                lufsRunningSum += (double) kSqSum;
+                if (lufsRunningSum < 0.0) lufsRunningSum = 0.0;
+                lufsWritePos = (lufsWritePos + 1) % lufsBufferSize;
+            }
         }
     }
-}
-    
 
     // ---- Stereo waveform buffer ----
     {
