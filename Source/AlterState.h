@@ -1,9 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 
-// Ultra‑minimal AlterState: holý ValueTree + priame get/set metódy.
-// (Žiadne defaulty v CTOR – nastavíš ich v Main.cpp pri štarte.)
-
+// Add MIDI identifier to AlterState
 class AlterState
 {
 public:
@@ -80,7 +78,7 @@ public:
     }
     
     // =========================================================
-       // NEW: Panel layout (Add/Delete, multiple instances)
+       // Panel layout (Add/Delete, multiple instances)
        // =========================================================
 
        // názvy node-ov v ValueTree
@@ -89,7 +87,7 @@ public:
 
        // properties na paneli
        static inline const juce::Identifier kId      { "id" };
-       static inline const juce::Identifier kType    { "type" };     // "rms", "spectrum", neskôr ďalšie
+       static inline const juce::Identifier kType    { "type" };     // "rms", "spectrum", "midi", neskôr ďalšie
        static inline const juce::Identifier kSmooth  { "smooth01" };
        static inline const juce::Identifier kAWeight { "aWeight" };
        static inline const juce::Identifier kBins    { "bins" };
@@ -233,6 +231,11 @@ public:
                p.setProperty (kChladniMaterial, 0,     nullptr);  // Aluminium
                p.setProperty (kPreferredWidth,  200,   nullptr);  // squarish default
                p.setProperty (kWidthRatio,      0.25f, nullptr);
+           }
+           else if (type == "midi")
+           {
+               p.setProperty (kPreferredWidth,  300,   nullptr);  // Default width
+               p.setProperty (kWidthRatio,      0.25f, nullptr);  // Proportional fallback
            }
            else
            {
