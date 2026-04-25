@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstring>
 #include <array>
+#include "MidiHandler.h"
 
 // ALTER Listener - VST3 (no UI)
 // - RMS:  'ALTR' + float (~200 Hz)
@@ -10,6 +11,7 @@
 // - Peak: 'ALTP' + float (linear true-peak, max|sample| per block)
 // - LUFS: 'ALTL' + float (momentary LUFS, ITU-R BS.1770, 400 ms window)
 // - Wave: 'ALTW' + interleaved L,R floats (stereo waveform, raw samples)
+// - MIDI: 'ALTM' + activeNoteCount (1 byte) + [noteNum, velocity] pairs
 
 // ---------------------------------------------------------------
 // Packet struktura pre ring buffer
@@ -81,7 +83,7 @@ public:
     bool hasEditor() const override                                   { return false; }
     juce::AudioProcessorEditor* createEditor() override               { return nullptr; }
 
-    bool acceptsMidi() const override                                  { return false; }
+    bool acceptsMidi() const override                                  { return true; }
     bool producesMidi() const override                                 { return false; }
     bool isMidiEffect() const override                                 { return false; }
     double getTailLengthSeconds() const override                        { return 0.0; }
@@ -144,6 +146,10 @@ private:
     void enqueuePeakPacket     (float peak);
     void enqueueLufsPacket     (float lufs);
     void enqueueWaveformPacket ();
+    void enqueueMidiPacket     ();
+
+    // MIDI Handler
+    MidiHandler midiHandler;
 
     // RMS
     int    samplesPerPacket = 0;
@@ -252,6 +258,10 @@ private:
     std::array<float, kWaveformSize> waveformL {};
     std::array<float, kWaveformSize> waveformR {};
     int waveformWrite = 0;
+
+    // MIDI packet sending - throttle counter
+    int midiPacketCounter = 0;
+    static constexpr int kMidiPacketInterval = 10; // Posiela MIDI packet každých 10 blockoch
 
     void pushSamplesToFifo (const float* samples, int numSamples);
     void performFftAndEnqueue();
