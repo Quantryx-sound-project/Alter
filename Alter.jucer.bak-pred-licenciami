@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="aBho6R" name="Alter" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" bundleIdentifier="com.martinperoncik.alter.test2025">
+  <MAINGROUP id="g1Ymdd" name="Alter">
+    <GROUP id="{D975C757-3356-3421-83BF-B8F4B6A0DA75}" name="Source">
+      <GROUP id="{65BB1BEB-99EA-6242-4929-C959E2741AEC}" name="AppIcon">
+        <FILE id="Ixv7YE" name="alter_icon_1024.png" compile="0" resource="1"
+              file="AppIcon/alter_icon_1024.png"/>
+      </GROUP>
+      <GROUP id="{E923E81C-12B2-48DF-257A-3D85F27ECCF6}" name="ModuleInfoWindows">
+        <FILE id="wDkQyI" name="InfoWindowChladniPatterns.h" compile="0" resource="0"
+              file="Source/InfoWindowChladniPatterns.h"/>
+        <FILE id="InToAn" name="InfoWindowToneAnalyzer.h" compile="0" resource="0"
+              file="Source/InfoWindowToneAnalyzer.h"/>
+        <FILE id="InSpGr" name="InfoWindowSpectrogram.h" compile="0" resource="0"
+              file="Source/InfoWindowSpectrogram.h"/>
+        <FILE id="InStSc" name="InfoWindowStereoscope.h" compile="0" resource="0"
+              file="Source/InfoWindowStereoscope.h"/>
+        <FILE id="InGeom" name="InfoWindowGeometry.h" compile="0" resource="0"
+              file="Source/InfoWindowGeometry.h"/>
+        <FILE id="InAlch" name="InfoWindowAlchemy.h" compile="0" resource="0"
+              file="Source/InfoWindowAlchemy.h"/>
+        <FILE id="Lzm3fQ" name="InfoWindowSynesthesia.h" compile="0" resource="0"
+              file="Source/InfoWindowSynesthesia.h"/>
+        <FILE id="btObD5" name="InfoWindowSpectrum.h" compile="0" resource="0"
+              file="Source/InfoWindowSpectrum.h"/>
+        <FILE id="czEPR9" name="InfoWindowOscilator.h" compile="0" resource="0"
+              file="Source/InfoWindowOscilator.h"/>
+        <FILE id="ePgukc" name="InfoWindowAudioMeters.h" compile="0" resource="0"
+              file="Source/InfoWindowAudioMeters.h"/>
+      </GROUP>
+      <FILE id="KVzrbS" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="HPDHj6" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <GROUP id="{135F8E4A-F169-8EB2-773D-5553996388CC}" name="VisualModules">
+        <FILE id="UHLuoV" name="AudioMeter.h" compile="0" resource="0" file="Source/AudioMeter.h"/>
+        <FILE id="HPFYdz" name="ChladniPaterns.h" compile="0" resource="0"
+              file="Source/ChladniPaterns.h"/>
+        <FILE id="EjgVTl" name="Oscilator.h" compile="0" resource="0" file="Source/Oscilator.h"/>
+        <FILE id="QfjeyQ" name="Spectrum.h" compile="0" resource="0" file="Source/Spectrum.h"/>
+        <FILE id="uL9hLv" name="Synesthesia.h" compile="0" resource="0" file="Source/Synesthesia.h"/>
+        <FILE id="TnAnZr" name="ToneAnalyzer.h" compile="0" resource="0" file="Source/ToneAnalyzer.h"/>
+        <FILE id="SpGrAm" name="Spectrogram.h" compile="0" resource="0" file="Source/Spectrogram.h"/>
+        <FILE id="StRsCp" name="Stereoscope.h" compile="0" resource="0" file="Source/Stereoscope.h"/>
+        <FILE id="GeoViz" name="GeometryVisual.h" compile="0" resource="0"
+              file="Source/GeometryVisual.h"/>
+        <FILE id="AlchVz" name="AlchemyVisual.h" compile="0" resource="0"
+              file="Source/AlchemyVisual.h"/>
+        <FILE id="AlcShd" name="AlcShader.h" compile="0" resource="0"
+              file="Source/AlcShader.h"/>
+        <FILE id="HudRcH" name="HudRecorder.h" compile="0" resource="0" file="Source/HudRecorder.h"/>
+        <FILE id="HudRcC" name="HudRecorder.cpp" compile="1" resource="0" file="Source/HudRecorder.cpp"/>
+        <FILE id="HudCMm" name="HudCaptureMac.mm" compile="1" resource="0"
+              file="Source/HudCaptureMac.mm"/>
+      </GROUP>
+      <FILE id="i7bwVl" name="UdpReceiver.h" compile="0" resource="0" file="Source/UdpReceiver.h"/>
+      <FILE id="bDB6Uh" name="AlterState.h" compile="0" resource="0" file="Source/AlterState.h"/>
+      <FILE id="AltThm" name="AlterTheme.h" compile="0" resource="0" file="Source/AlterTheme.h"/>
+      <FILE id="LogoDt" name="LogoData.h" compile="0" resource="0" file="Source/LogoData.h"/>
+      <FILE id="QspLgo" name="QspLogoData.h" compile="0" resource="0" file="Source/QspLogoData.h"/>
+      <FILE id="QspLgT" name="QspLogoTextData.h" compile="0" resource="0"
+            file="Source/QspLogoTextData.h"/>
+      <FILE id="aCqRu0" name="ControllerWindow.h" compile="0" resource="0"
+            file="Source/ControllerWindow.h"/>
+      <FILE id="ZnhdPp" name="ControllerWindow.cpp" compile="1" resource="0"
+            file="Source/ControllerWindow.cpp"/>
+      <FILE id="mr4LEv" name="SystemAudioCapture.h" compile="0" resource="0"
+            file="Source/SystemAudioCapture.h"/>
+      <FILE id="MacSaH" name="MacSystemAudioCapture.h" compile="0" resource="0"
+            file="Source/MacSystemAudioCapture.h"/>
+      <FILE id="MacSaM" name="MacSystemAudioCapture.mm" compile="1" resource="0"
+            file="Source/MacSystemAudioCapture.mm"/>
+      <FILE id="qOu9kM" name="AudioSourceInterface.h" compile="0" resource="0"
+            file="Source/AudioSourceInterface.h"/>
+      <FILE id="ModAuS" name="ModuleAudioSource.h" compile="0" resource="0"
+            file="Source/ModuleAudioSource.h"/>
+      <FILE id="AsyVuB" name="AsyncVisualBase.h" compile="0" resource="0"
+            file="Source/AsyncVisualBase.h"/>
+      <FILE id="SynShd" name="SynShader.h" compile="0" resource="0" file="Source/SynShader.h"/>
+      <FILE id="GeoShd" name="GeoShader.h" compile="0" resource="0" file="Source/GeoShader.h"/>
+      <FILE id="AltGLH" name="AlterGLHost.h" compile="0" resource="0" file="Source/AlterGLHost.h"/>
+      <FILE id="AltPrC" name="AlterPresentClock.h" compile="0" resource="0"
+            file="Source/AlterPresentClock.h"/>
+      <FILE id="aPzDbr" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="ScreenCaptureKit, AVFoundation, CoreMedia, CoreVideo, CoreAudio"
+               bigIcon="Ixv7YE" customPList="&lt;plist&gt;&lt;dict&gt;&lt;key&gt;NSAudioCaptureUsageDescription&lt;/key&gt;&lt;string&gt;Alter visualises the system audio output. Recording system audio is needed for the System Audio input mode and for HUD recordings with sound.&lt;/string&gt;&lt;/dict&gt;&lt;/plist&gt;">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Alter"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Alter"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2026 targetFolder="Builds/VisualStudio2026" bigIcon="Ixv7YE">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\JUCE_Projects\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="C:\JUCE_Projects\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2026>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
